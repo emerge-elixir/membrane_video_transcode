@@ -1,6 +1,9 @@
 # Raspberry Pi 5 Decoder Support
 
-Raspberry Pi 5 support is hardware-qualified separately from the desktop VAAPI path.
+**Raspberry Pi support is unvalidated in `0.1.0`.** The build integration is included, but
+Raspberry Pi target builds and hardware decoding have not been qualified for this release.
+The requirements and checklist below are retained for future validation, not as release gates.
+
 `membrane_video_transcode` remains codec-only: display, DRM/KMS, and presentation concerns belong to
 consumers outside this package.
 
@@ -33,7 +36,19 @@ The `rpi` Cargo feature forwards to `ffmpeg-next/rpi`. This is required when com
 feature does not build or install FFmpeg; the Nerves system must supply the matching patched
 libraries. It also does not add display or scanout behavior.
 
-## Qualification
+## Future qualification
+
+These checks are not required for the `0.1.0` release. When qualifying Raspberry Pi support in a
+future release, use the patched target FFmpeg headers/libraries, not stock desktop FFmpeg.
+`--all-features` enables `rpi`, which references SAND/RPI4 pixel formats absent from upstream
+FFmpeg. A desktop build failure due to these missing formats is not target qualification.
+
+Run Clippy in the target build environment with its linker/sysroot configured:
+
+```sh
+cargo clippy --manifest-path native/video_decoder/Cargo.toml --locked \
+  --all-targets --all-features -- -D warnings
+```
 
 On physical Raspberry Pi 5 hardware:
 

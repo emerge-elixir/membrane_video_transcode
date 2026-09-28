@@ -1,4 +1,6 @@
 defmodule Membrane.VideoTranscode.Decoder.Native do
+  @moduledoc false
+
   @rustler_opts Mix.Project.config()[:rustler_opts]
 
   defmodule DMABufFrame do

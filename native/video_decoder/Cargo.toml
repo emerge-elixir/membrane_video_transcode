@@ -2,6 +2,9 @@
 name = "video_decoder"
 version = "0.1.0"
 edition = "2024"
+rust-version = "1.91"
+license = "Apache-2.0"
+publish = false
 
 [lib]
 name = "video_decoder"
