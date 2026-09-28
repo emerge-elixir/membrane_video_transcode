@@ -36,7 +36,7 @@ defmodule MembraneVideoTranscode.MixProject do
       {:membrane_raw_video_format, "~> 0.4"},
       {:rustler, "~> 0.38.0", runtime: false},
       {:telemetry, "~> 1.0"},
-      {:video_interop, "~> 0.1.0"}
+      {:video_interop, "~> 0.1.2"}
     ]
   end
 
