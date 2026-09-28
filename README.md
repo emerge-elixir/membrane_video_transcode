@@ -200,8 +200,9 @@ checklist.
 [API documentation](https://hexdocs.pm/membrane_video_transcode/Membrane.Instrumentation.html)
 for the available session and tracing functions.
 
-The [release checklist](docs/releasing.md) covers tests, native checks, and package validation.
-Release history is tracked in the [changelog](CHANGELOG.md).
+The [release checklist](docs/releasing.md) covers tests, native checks, package validation, and
+tag-triggered Hex/HexDocs publishing through CI. Release history is tracked in the
+[changelog](CHANGELOG.md).
 
 ## License
 

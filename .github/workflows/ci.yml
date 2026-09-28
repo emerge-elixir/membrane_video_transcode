@@ -59,3 +59,71 @@ jobs:
           cargo build --manifest-path native/video_decoder/Cargo.toml --locked --release
       - name: Validate Hex package in a clean consumer
         run: bash scripts/check_package.sh
+
+  release-tag:
+    name: Release tag
+    if: github.event_name == 'push' && startsWith(github.ref, 'refs/tags/')
+    needs: [check]
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v5
+        with:
+          ref: ${{ github.sha }}
+          fetch-depth: 0
+      - name: Verify exact tag, package versions, and changelog date
+        run: bash scripts/check_release.sh "$GITHUB_REF_NAME"
+
+  publish-hex:
+    name: Publish membrane_video_transcode to Hex
+    if: github.repository == 'emerge-elixir/membrane_video_transcode' && github.event_name == 'push' && startsWith(github.ref, 'refs/tags/v')
+    needs: [release-tag]
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    environment: hex
+    concurrency:
+      group: hex-${{ github.ref }}
+      cancel-in-progress: false
+    steps:
+      - name: Checkout tagged source
+        uses: actions/checkout@v5
+        with:
+          ref: ${{ github.sha }}
+          fetch-depth: 0
+      - name: Revalidate exact release tag
+        run: bash scripts/check_release.sh "$GITHUB_REF_NAME"
+      - name: Set up Elixir and OTP
+        uses: erlef/setup-beam@v1
+        with:
+          elixir-version: '1.18.4'
+          otp-version: '28.1.1'
+      - name: Set up supported Rust floor
+        uses: dtolnay/rust-toolchain@1.91.0
+      - name: Install native dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y build-essential pkg-config clang libclang-dev \
+            libavcodec-dev libavformat-dev libavutil-dev libavdevice-dev \
+            libavfilter-dev libswresample-dev libswscale-dev
+      - name: Install Hex, Rebar, and dependencies
+        run: |
+          mix local.hex --force
+          mix local.rebar --force
+          mix deps.get
+      - name: Compile and build documentation
+        run: |
+          mix compile --warnings-as-errors
+          mix docs --warnings-as-errors
+      - name: Verify Hex package contents
+        run: mix hex.build --unpack --output "$RUNNER_TEMP/membrane_video_transcode-$GITHUB_REF_NAME"
+      - name: Publish tagged Hex package
+        env:
+          HEX_API_KEY: ${{ secrets.HEX_API_KEY }}
+        run: |
+          unset HEX_ORGANIZATION
+          mix hex.publish package --yes
+      - name: Publish tagged Hex documentation
+        env:
+          HEX_API_KEY: ${{ secrets.HEX_API_KEY }}
+        run: |
+          unset HEX_ORGANIZATION
+          mix hex.publish docs --yes
